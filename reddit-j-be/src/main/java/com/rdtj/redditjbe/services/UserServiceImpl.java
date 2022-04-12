@@ -1,5 +1,6 @@
 package com.rdtj.redditjbe.services;
 
+import com.rdtj.redditjbe.dtos.UserLoginReqDTO;
 import com.rdtj.redditjbe.dtos.UserRegisterReqDTO;
 import com.rdtj.redditjbe.models.User;
 import com.rdtj.redditjbe.models.UserRole;
@@ -41,6 +42,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    public String login(UserLoginReqDTO userLoginReqDTO) {
+        Optional<User> optionalUser = userRepo.findByEmail(userLoginReqDTO.getEmail());
+        if (optionalUser.isEmpty()){
+            throw new IllegalStateException("User with provided email not found or doesn't exist!");
+        }
+        if (!bCryptPasswordEncoder.matches(userLoginReqDTO.getPassword(), optionalUser.get().getPassword())){
+            throw new IllegalStateException("Wrong password!");
+        }
+        return "User logged in";
+    }
+
+    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Optional<User> optionalUser = userRepo.findByUsername(email);
 
@@ -72,5 +85,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             throw new IllegalStateException("The username has invalid length or contains forbidden characters. Also make sure it doesn't begin with (or include) any empty space(s).");
         }
         return patternUsername.matcher(username).matches();
+    }
+
+    private boolean passwordsMatch(String pwRaw, String pwEncoded) {
+        return bCryptPasswordEncoder.matches(pwRaw, pwEncoded);
     }
 }

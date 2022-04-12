@@ -1,5 +1,6 @@
 package com.rdtj.redditjbe.controllers;
 
+import com.rdtj.redditjbe.dtos.UserLoginReqDTO;
 import com.rdtj.redditjbe.dtos.UserRegisterReqDTO;
 import com.rdtj.redditjbe.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +15,12 @@ public class UserController {
 
     @PostMapping("/auth/register")
     public String register(@RequestBody UserRegisterReqDTO userRegisterReqDTO) {
-        System.out.println(userRegisterReqDTO.getUsername());
         return userService.register(userRegisterReqDTO);
+    }
+
+    @PostMapping("/auth/log-in")
+    public String login(@RequestBody UserLoginReqDTO userLoginReqDTO) {
+        return userService.login(userLoginReqDTO);
     }
 
     @GetMapping ("/user/{id}")
