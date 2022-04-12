@@ -26,7 +26,9 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
+    @Transient
     private boolean enabled;
+    @Transient
     private boolean locked;
 
     public User(String username, String email, String password, UserRole userRole, boolean enabled, boolean locked) {

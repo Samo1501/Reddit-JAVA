@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private boolean passwordIsValid(String password) {
         Pattern patternPw = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*.[ -/:-@\\[-`{-~]).{8,30}$");
         if (!patternPw.matcher(password).matches()) {
-            throw new IllegalStateException("Password doesn't meet the requirements!");
+            throw new IllegalStateException("Password doesn't meet the requirements (English letters only, length between 8-30, at least: 1 lowercase, 1 uppercase, 1 number, 1 special character)");
         }
         return patternPw.matcher(password).matches();
     }
