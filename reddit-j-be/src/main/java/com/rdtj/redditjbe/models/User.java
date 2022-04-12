@@ -23,6 +23,7 @@ public class User implements UserDetails {
     private String username;
     private String email;
     private String password;
+    @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
     private boolean enabled;
@@ -37,10 +38,11 @@ public class User implements UserDetails {
         this.locked = locked;
     }
 
-    public User(UserRegisterReqDTO userRegisterReqDTO) {
+    public User(UserRegisterReqDTO userRegisterReqDTO, UserRole userRole) {
         username = userRegisterReqDTO.getUsername();
         password = userRegisterReqDTO.getPassword();
         email = userRegisterReqDTO.getEmail();
+        this.userRole = userRole;
     }
 
     @Override
