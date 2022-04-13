@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1")
 public class UserController {
 
+
     private final UserService userService;
 
     @PostMapping("/auth/register")
@@ -25,7 +26,6 @@ public class UserController {
 
     @GetMapping ("/user/{id}")
     public String getUser(@PathVariable Long id) {
-        System.out.println();
-        return null;
+        return "shows user";
     }
 }

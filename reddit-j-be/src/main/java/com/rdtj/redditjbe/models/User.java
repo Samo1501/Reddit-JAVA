@@ -18,17 +18,17 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(nullable = false, updatable = false)
     private Long id;
 
     private String username;
     private String email;
     private String password;
+
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
-    @Transient
     private boolean enabled;
-    @Transient
     private boolean locked;
 
     public User(String username, String email, String password, UserRole userRole, boolean enabled, boolean locked) {

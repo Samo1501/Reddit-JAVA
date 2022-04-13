@@ -1,5 +1,6 @@
 package com.rdtj.redditjbe.security.configuration;
 
+import com.rdtj.redditjbe.models.UserRole;
 import com.rdtj.redditjbe.services.UserService;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,10 +49,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/api/v*/auth/register/**").permitAll()
                 .antMatchers("/api/v*/auth/log-in").permitAll()
+                .antMatchers("/api/v*/user/**").hasAnyRole(String.valueOf(UserRole.USER), String.valueOf(UserRole.ADMIN))
                 .anyRequest()
                 .authenticated().and()
                 .formLogin();
 
-//        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 }

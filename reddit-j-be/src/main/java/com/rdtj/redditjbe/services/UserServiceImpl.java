@@ -5,6 +5,7 @@ import com.rdtj.redditjbe.dtos.UserRegisterReqDTO;
 import com.rdtj.redditjbe.models.User;
 import com.rdtj.redditjbe.models.UserRole;
 import com.rdtj.redditjbe.repositories.UserRepo;
+import com.rdtj.redditjbe.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,11 +22,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepo userRepo;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Override
     public String register(UserRegisterReqDTO userRegisterReqDTO) {
         emailIsValid(userRegisterReqDTO.getEmail());
+
         Optional<User> optionalUser = userRepo.findByEmail(userRegisterReqDTO.getEmail());
+        System.out.println("token: " + jwtUtil.createToken(optionalUser.get()));
+        jwtUtil.createToken(optionalUser.get());
+        jwtUtil.validateToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlZ2RmZ0BnbW1qZC5jMGRtMSIsImV4cCI6MTY2Nzg2Mzg3MH0.5F0KPDaND7fk1vfGeCI-q_FsMIdL69t7xmMisFhGl6U", optionalUser.get());
+
         if (optionalUser.isPresent()) {
             throw new IllegalStateException("User with provided email already exists!");
         }
