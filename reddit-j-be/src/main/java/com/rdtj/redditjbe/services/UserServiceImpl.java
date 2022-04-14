@@ -1,66 +1,111 @@
 package com.rdtj.redditjbe.services;
 
-import com.rdtj.redditjbe.dtos.UserLoginReqDTO;
+import com.rdtj.redditjbe.domain.Role;
+import com.rdtj.redditjbe.domain.User;
+import com.rdtj.redditjbe.domain.UserPrincipal;
 import com.rdtj.redditjbe.dtos.UserRegisterReqDTO;
-import com.rdtj.redditjbe.models.User;
-import com.rdtj.redditjbe.models.UserRole;
-import com.rdtj.redditjbe.repositories.UserRepo;
+import com.rdtj.redditjbe.exception.domain.EmailExistsException;
+import com.rdtj.redditjbe.exception.domain.UserNotFoundException;
+import com.rdtj.redditjbe.exception.domain.UsernameExistsException;
+import com.rdtj.redditjbe.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import static com.rdtj.redditjbe.constants.UserImplConstant.*;
+
 @Service
+@Transactional
+@Qualifier("userDetailsService")
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService, UserDetailsService {
 
-    private final UserRepo userRepo;
+    private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
-    public String register(UserRegisterReqDTO userRegisterReqDTO) {
-        emailIsValid(userRegisterReqDTO.getEmail());
-        Optional<User> optionalUser = userRepo.findByEmail(userRegisterReqDTO.getEmail());
-        if (optionalUser.isPresent()) {
-            throw new IllegalStateException("User with provided email already exists!");
-        }
-        usernameIsValid(userRegisterReqDTO.getUsername());
-        passwordIsValid(userRegisterReqDTO.getPassword());
-
-        String encodedPassword = bCryptPasswordEncoder.encode(userRegisterReqDTO.getPassword());
-
-        User user = new User(userRegisterReqDTO, UserRole.USER);
-        user.setPassword(encodedPassword);
-        userRepo.save(user);
-        System.out.println("user saved");
-        return "user saved";
-    }
-
-    @Override
-    public String login(UserLoginReqDTO userLoginReqDTO) {
-        Optional<User> optionalUser = userRepo.findByEmail(userLoginReqDTO.getEmail());
-        if (optionalUser.isEmpty()){
-            throw new IllegalStateException("User with provided email not found or doesn't exist!");
-        }
-        if (!bCryptPasswordEncoder.matches(userLoginReqDTO.getPassword(), optionalUser.get().getPassword())){
-            throw new IllegalStateException("Wrong password!");
-        }
-        return "User logged in";
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<User> optionalUser = userRepo.findByUsername(email);
-
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<User> optionalUser = userRepository.findUserByUsername(username);
         if (optionalUser.isEmpty()) {
-            throw new UsernameNotFoundException(email);
+            System.out.println("Username not found by username " + username);
+            throw new UsernameNotFoundException("Username not found by username " + username);
+        } else {
+            userRepository.save(optionalUser.get());
+            UserPrincipal userPrincipal = new UserPrincipal(optionalUser.get());
+            System.out.println("Returning found user by username " + username);
+            return userPrincipal;
         }
-        return optionalUser.orElseThrow(() -> new UsernameNotFoundException("user not found, " + email));
+    }
+
+    @Override
+    public User register(UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException {
+        validateNewUsernameAndEmail("", userRegisterReqDTO.getUsername(), userRegisterReqDTO.getEmail());
+        System.out.println(userRegisterReqDTO.getPassword());
+        User user = new User();
+        user.setUsername(userRegisterReqDTO.getUsername());
+        user.setEmail(userRegisterReqDTO.getEmail());
+        user.setPassword(encodePassword(userRegisterReqDTO.getPassword()));
+        user.setRole(Role.ROLE_USER);
+        user.setAuthorities(Role.ROLE_USER.getAuthorities());
+        user.setEnabled(true);
+        user.setNotLocked(true);
+        userRepository.save(user);
+        return user;
+    }
+
+    private String encodePassword(String password) {
+        return bCryptPasswordEncoder.encode(password);
+    }
+
+    private User validateNewUsernameAndEmail(String currentUsername, String newUsername, String newEmail) throws UserNotFoundException, EmailExistsException, UsernameExistsException {
+        Optional<User> optionalUserByUsername = userRepository.findUserByUsername(newUsername);
+        Optional<User> optionalUserByEmail = userRepository.findUserByEmail(newEmail);
+
+        if (!currentUsername.isBlank()) {
+            Optional<User> currentUserByUsername = userRepository.findUserByUsername(currentUsername);
+            if (currentUserByUsername.isEmpty()) {
+                throw new UsernameNotFoundException(USER_BY_USERNAME_NOT_FOUND);
+            }
+            if (optionalUserByUsername.isPresent() && !currentUserByUsername.get().getId().equals(optionalUserByUsername.get().getId())) {
+                throw new UsernameExistsException(USERNAME_ALREADY_IN_USE);
+            }
+            if (optionalUserByEmail.isPresent() && !currentUserByUsername.get().getId().equals(optionalUserByEmail.get().getId())) {
+                throw new EmailExistsException(EMAIL_ALREADY_IN_USE);
+            }
+            return currentUserByUsername.get();
+        } else {
+            if (optionalUserByUsername.isPresent()) {
+                throw new UsernameExistsException(USER_BY_USERNAME_FOUND);
+            }
+            if (optionalUserByEmail.isPresent()) {
+                throw new EmailExistsException(EMAIL_ALREADY_IN_USE);
+            }
+            return null;
+        }
+    }
+
+    @Override
+    public List<User> getUsers() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public User findUserByUsername(String username) {
+        return userRepository.findUserByUsername(username).get();
+    }
+
+    @Override
+    public User findUserByEmail(String email) {
+        return userRepository.findUserByEmail(email).get();
     }
 
     private boolean emailIsValid(String email) {
@@ -90,4 +135,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private boolean passwordsMatch(String pwRaw, String pwEncoded) {
         return bCryptPasswordEncoder.matches(pwRaw, pwEncoded);
     }
+
+
 }

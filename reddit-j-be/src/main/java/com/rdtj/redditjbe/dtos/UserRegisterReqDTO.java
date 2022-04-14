@@ -5,11 +5,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserRegisterReqDTO {
+
     private String username;
-    private String password;
     private String email;
+    private String password;
 }
