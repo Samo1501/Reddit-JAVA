@@ -46,13 +46,18 @@ public class UserResource extends ExceptionHandling {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<GetUserResDTO>> getAllUsers() {
+    public ResponseEntity<List<GetAllUsersResDTO>> getAllUsers() {
         return new ResponseEntity<>(userService.getAllUsersDTO(), HttpStatus.OK);
     }
 
     @GetMapping("/user/{id}")
     public ResponseEntity<GetUserResDTO> getUser(@PathVariable Long id) throws UserNotFoundException {
         return new ResponseEntity<>(userService.getUserDTOById(id), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<OkDTO> deleteUser(@PathVariable Long id) throws UserNotFoundException {
+        return new ResponseEntity<>(userService.deleteUser(id), HttpStatus.OK);
     }
 
     @PutMapping("/user/change-password")
@@ -62,6 +67,6 @@ public class UserResource extends ExceptionHandling {
 
     @GetMapping("/home")
     public String showUser() {
-        return "";
+        return "sdfsdf";
     }
 }

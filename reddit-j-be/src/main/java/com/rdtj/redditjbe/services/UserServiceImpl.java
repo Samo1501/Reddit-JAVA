@@ -1,6 +1,7 @@
 package com.rdtj.redditjbe.services;
 
 import com.auth0.jwt.JWT;
+import com.rdtj.redditjbe.constants.Authority;
 import com.rdtj.redditjbe.domain.Role;
 import com.rdtj.redditjbe.domain.User;
 import com.rdtj.redditjbe.domain.UserPrincipal;
@@ -115,9 +116,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public List<GetUserResDTO> getAllUsersDTO() {
+    public List<GetAllUsersResDTO> getAllUsersDTO() {
         List<User> users = getAllUsers();
-        return users.stream().map(user -> new GetUserResDTO(user)).collect(Collectors.toList());
+        return users.stream().map(user -> new GetAllUsersResDTO(user)).collect(Collectors.toList());
     }
 
 
@@ -153,6 +154,16 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             return new OkDTO();
         }
         throw new OldPwDoesntMatchException(OLD_PW_DOESNT_MATCH);
+    }
+
+    @Override
+    public OkDTO deleteUser(Long id) throws UserNotFoundException {
+        Optional<User> optionalUser = userRepository.findUserById(id);
+        if (optionalUser.isPresent()){
+            userRepository.delete(optionalUser.get());
+            return new OkDTO();
+        }
+        throw new UserNotFoundException(USER_BY_ID_NOT_FOUND);
     }
 
     @Override

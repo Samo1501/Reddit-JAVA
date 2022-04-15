@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -53,8 +54,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers(SecurityConstant.PUBLIC_URLS).permitAll()
-                .antMatchers("/api/v1/home").hasAnyAuthority("user:read")
-                .antMatchers("/api/v1/user/*").hasAnyAuthority("user:read")
+                .antMatchers("/api/v1/home").hasAuthority("user:read")
+                .antMatchers(HttpMethod.GET, "/api/v1/user").hasAuthority("user:read")
+                .antMatchers(HttpMethod.GET, "/api/v1/user/*").hasAuthority("user:read")
+                .antMatchers(HttpMethod.DELETE, "/api/v1/user/*").hasAuthority("user:delete")
+                .antMatchers("/api/v1/user/change-password").hasAuthority("user:update")
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().accessDeniedHandler(jwtAccessDeniedHandler)
