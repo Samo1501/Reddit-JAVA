@@ -8,6 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.stream;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,7 +21,7 @@ public class UserPrincipal implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().name());
-        return Collections.singletonList(authority);
+        return stream(this.user.getAuthorities()).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
     }
 
     @Override
