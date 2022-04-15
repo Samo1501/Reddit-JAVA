@@ -2,6 +2,7 @@ package com.rdtj.redditjbe.resource;
 
 import com.rdtj.redditjbe.domain.User;
 import com.rdtj.redditjbe.domain.UserPrincipal;
+import com.rdtj.redditjbe.dtos.TokenDTO;
 import com.rdtj.redditjbe.dtos.UserLoginReqDTO;
 import com.rdtj.redditjbe.dtos.UserRegisterReqDTO;
 import com.rdtj.redditjbe.exception.domain.EmailExistsException;
@@ -21,36 +22,35 @@ import org.springframework.web.bind.annotation.*;
 import static com.rdtj.redditjbe.constants.SecurityConstant.JWT_TOKEN_HEADER;
 
 @RestController
+@CrossOrigin
 @RequiredArgsConstructor
 @RequestMapping({"/", "/api/v1"})
 public class UserResource extends ExceptionHandling {
 
-    private final UserService userService;
     private final AuthenticationManager authenticationManager;
-    private final JWTTokenProvider jwtTokenProvider;
+    private final UserService userService;
 
     @PostMapping("/auth/register")
-    public ResponseEntity<User> register(@RequestBody UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException {
-        return new ResponseEntity<>(userService.register(userRegisterReqDTO), HttpStatus.CREATED);
+    public ResponseEntity<TokenDTO> register(@RequestBody UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException {
+        TokenDTO tokenDTO = userService.register(userRegisterReqDTO);
+        return new ResponseEntity<>(tokenDTO, HttpStatus.CREATED);
     }
 
     @PostMapping("/auth/log-in")
-    public ResponseEntity<User> login(@RequestBody UserLoginReqDTO userLoginReqDTO) {
+    public ResponseEntity<TokenDTO> login(@RequestBody UserLoginReqDTO userLoginReqDTO) {
         authenticate(userLoginReqDTO.getEmail(), userLoginReqDTO.getPassword());
-        User loginUser = userService.findUserByEmail(userLoginReqDTO.getEmail());
-        UserPrincipal userPrincipal = new UserPrincipal(loginUser);
-        HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
-        return new ResponseEntity<>(loginUser, jwtHeader, HttpStatus.OK);
+        TokenDTO tokenDTO = userService.login(userLoginReqDTO);
+        return new ResponseEntity<>(tokenDTO, HttpStatus.OK);
     }
 
-    private HttpHeaders getJwtHeader(UserPrincipal userPrincipal) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(JWT_TOKEN_HEADER, jwtTokenProvider.generateJwtToken(userPrincipal));
-        return headers;
-    }
+//    private HttpHeaders getJwtHeader(UserPrincipal userPrincipal, String token) {
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.add(JWT_TOKEN_HEADER, token);
+//        return headers;
+//    }
 
-    private void authenticate(String username, String password){
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+    private void authenticate(String email, String password){
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
     }
 
     @GetMapping("/user/{id}")

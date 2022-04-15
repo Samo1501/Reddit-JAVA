@@ -1,5 +1,6 @@
 package com.rdtj.redditjbe.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,8 @@ public class User implements Serializable {
 
     private String username;
     private String email;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @CreationTimestamp
@@ -30,7 +33,7 @@ public class User implements Serializable {
 
     @Enumerated(EnumType.STRING)
     private Role role;
-
+    
     private String[] authorities;
 
     private boolean isEnabled;

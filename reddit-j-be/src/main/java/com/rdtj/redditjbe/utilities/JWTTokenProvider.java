@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +37,7 @@ public class JWTTokenProvider {
                 .withSubject(userPrincipal.getUsername())
                 .withArrayClaim(SecurityConstant.AUTHORITIES, claims)
                 .withExpiresAt(new Date(System.currentTimeMillis() + SecurityConstant.EXPIRATION_TIME))
-                .sign(Algorithm.HMAC512(secret.getBytes()));
+                .sign(Algorithm.HMAC256(secret.getBytes()));
     }
     
     public List<GrantedAuthority> getAuthorities(String token){
@@ -73,8 +74,7 @@ public class JWTTokenProvider {
     private JWTVerifier getJWTVerifier() {
         JWTVerifier verifier;
         try {
-            Algorithm algorithm = Algorithm.HMAC512(secret);
-            verifier = JWT.require(algorithm).
+            verifier = JWT.require(Algorithm.HMAC256(Base64.getDecoder().decode(secret))).
                     withIssuer(SecurityConstant.RAFALE)
                     .build();
         }catch (JWTVerificationException e){

@@ -3,11 +3,14 @@ package com.rdtj.redditjbe.services;
 import com.rdtj.redditjbe.domain.Role;
 import com.rdtj.redditjbe.domain.User;
 import com.rdtj.redditjbe.domain.UserPrincipal;
+import com.rdtj.redditjbe.dtos.TokenDTO;
+import com.rdtj.redditjbe.dtos.UserLoginReqDTO;
 import com.rdtj.redditjbe.dtos.UserRegisterReqDTO;
 import com.rdtj.redditjbe.exception.domain.EmailExistsException;
 import com.rdtj.redditjbe.exception.domain.UserNotFoundException;
 import com.rdtj.redditjbe.exception.domain.UsernameExistsException;
 import com.rdtj.redditjbe.repositories.UserRepository;
+import com.rdtj.redditjbe.utilities.JWTTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,6 +34,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final JWTTokenProvider jwtTokenProvider;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -47,7 +51,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User register(UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException {
+    public TokenDTO register(UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException {
         validateNewUsernameAndEmail("", userRegisterReqDTO.getUsername(), userRegisterReqDTO.getEmail());
         System.out.println(userRegisterReqDTO.getPassword());
         User user = new User();
@@ -59,8 +63,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setEnabled(true);
         user.setNotLocked(true);
         userRepository.save(user);
-        return user;
+
+        return new TokenDTO(jwtTokenProvider.generateJwtToken(new UserPrincipal(user)));
     }
+
+    @Override
+    public TokenDTO login(UserLoginReqDTO userLoginReqDTO) {
+        User loginUser = findUserByEmail(userLoginReqDTO.getEmail());
+
+        return new TokenDTO(jwtTokenProvider.generateJwtToken(new UserPrincipal(loginUser)));
+    }
+
 
     private String encodePassword(String password) {
         return bCryptPasswordEncoder.encode(password);
