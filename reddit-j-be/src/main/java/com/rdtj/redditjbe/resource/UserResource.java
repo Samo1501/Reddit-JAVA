@@ -36,8 +36,8 @@ public class UserResource extends ExceptionHandling {
 
     @PostMapping("/auth/login")
     public ResponseEntity<User> login(@RequestBody UserLoginReqDTO userLoginReqDTO) {
-        authenticate(userLoginReqDTO.getUsername(), userLoginReqDTO.getPassword());
-        User loginUser = userService.findUserByUsername(userLoginReqDTO.getUsername());
+        authenticate(userLoginReqDTO.getEmail(), userLoginReqDTO.getPassword());
+        User loginUser = userService.findUserByEmail(userLoginReqDTO.getEmail());
         UserPrincipal userPrincipal = new UserPrincipal(loginUser);
         HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
         return new ResponseEntity<>(loginUser, jwtHeader, HttpStatus.OK);

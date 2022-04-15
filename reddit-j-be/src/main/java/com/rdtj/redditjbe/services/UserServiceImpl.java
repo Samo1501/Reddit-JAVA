@@ -33,15 +33,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> optionalUser = userRepository.findUserByUsername(username);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Optional<User> optionalUser = userRepository.findUserByEmail(email);
         if (optionalUser.isEmpty()) {
-            System.out.println("Username not found by username " + username);
-            throw new UsernameNotFoundException("Username not found by username " + username);
+            System.out.println("Login email not found not found by email " + email);
+            throw new UsernameNotFoundException("Login email not found not found by email " + email);
         } else {
             userRepository.save(optionalUser.get());
             UserPrincipal userPrincipal = new UserPrincipal(optionalUser.get());
-            System.out.println("Returning found user by username " + username);
+            System.out.println("Returning found user by username " + email);
             return userPrincipal;
         }
     }
