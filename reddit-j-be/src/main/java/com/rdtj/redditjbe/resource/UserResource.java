@@ -34,7 +34,7 @@ public class UserResource extends ExceptionHandling {
         return new ResponseEntity<>(userService.register(userRegisterReqDTO), HttpStatus.CREATED);
     }
 
-    @PostMapping("/auth/login")
+    @PostMapping("/auth/log-in")
     public ResponseEntity<User> login(@RequestBody UserLoginReqDTO userLoginReqDTO) {
         authenticate(userLoginReqDTO.getEmail(), userLoginReqDTO.getPassword());
         User loginUser = userService.findUserByEmail(userLoginReqDTO.getEmail());
