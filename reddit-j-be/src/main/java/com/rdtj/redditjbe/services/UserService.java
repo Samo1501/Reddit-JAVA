@@ -1,20 +1,23 @@
 package com.rdtj.redditjbe.services;
 
 import com.rdtj.redditjbe.domain.User;
-import com.rdtj.redditjbe.dtos.TokenDTO;
-import com.rdtj.redditjbe.dtos.UserLoginReqDTO;
-import com.rdtj.redditjbe.dtos.UserRegisterReqDTO;
-import com.rdtj.redditjbe.exception.domain.EmailExistsException;
-import com.rdtj.redditjbe.exception.domain.UserNotFoundException;
-import com.rdtj.redditjbe.exception.domain.UsernameExistsException;
+import com.rdtj.redditjbe.dtos.*;
+import com.rdtj.redditjbe.exception.domain.*;
 
 import java.util.List;
 
 public interface UserService {
-    TokenDTO register (UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException;
+    TokenDTO register (UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException, CredentialWrongFormatException;
     TokenDTO login (UserLoginReqDTO userLoginReqDTO);
-    List<User> getUsers();
+    List<User> getAllUsers();
+    List<GetUserResDTO> getAllUsersDTO();
+
     User findUserByUsername (String username);
     User findUserByEmail (String email);
+    User getUserFromToken(String token) throws UserNotFoundException;
+    OkDTO changePassword(ChangePasswordDTO changePasswordDTO, String token) throws UserNotFoundException, OldPwDoesntMatchException, OldAndNewPwMatchException;
+
+    GetUserResDTO getUserDTOById(Long id) throws UserNotFoundException;
+
 
 }

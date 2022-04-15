@@ -113,6 +113,21 @@ public class ExceptionHandling implements ErrorController{
         return createHttpResponse(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_MSG);
     }
 
+    @ExceptionHandler(CredentialWrongFormatException.class)
+    public ResponseEntity<HttpResponse> credentialWrongFormatException(CredentialWrongFormatException exception){
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(OldPwDoesntMatchException.class)
+    public ResponseEntity<HttpResponse> oldPwDoesntMatchException(OldPwDoesntMatchException exception){
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(OldAndNewPwMatchException.class)
+    public ResponseEntity<HttpResponse> oldAndNewPwMatchException(OldAndNewPwMatchException exception){
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
     @RequestMapping("/error")
     public ResponseEntity<HttpResponse> notFound404(){
         System.out.println("adsdasd");

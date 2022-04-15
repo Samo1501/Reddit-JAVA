@@ -1,16 +1,8 @@
 package com.rdtj.redditjbe.resource;
 
-import com.rdtj.redditjbe.domain.User;
-import com.rdtj.redditjbe.domain.UserPrincipal;
-import com.rdtj.redditjbe.dtos.TokenDTO;
-import com.rdtj.redditjbe.dtos.UserLoginReqDTO;
-import com.rdtj.redditjbe.dtos.UserRegisterReqDTO;
-import com.rdtj.redditjbe.exception.domain.EmailExistsException;
-import com.rdtj.redditjbe.exception.domain.ExceptionHandling;
-import com.rdtj.redditjbe.exception.domain.UserNotFoundException;
-import com.rdtj.redditjbe.exception.domain.UsernameExistsException;
+import com.rdtj.redditjbe.dtos.*;
+import com.rdtj.redditjbe.exception.domain.*;
 import com.rdtj.redditjbe.services.UserService;
-import com.rdtj.redditjbe.utilities.JWTTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -19,7 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
-import static com.rdtj.redditjbe.constants.SecurityConstant.JWT_TOKEN_HEADER;
+import java.util.List;
 
 @RestController
 @CrossOrigin
@@ -31,7 +23,7 @@ public class UserResource extends ExceptionHandling {
     private final UserService userService;
 
     @PostMapping("/auth/register")
-    public ResponseEntity<TokenDTO> register(@RequestBody UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException {
+    public ResponseEntity<TokenDTO> register(@RequestBody UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException, CredentialWrongFormatException {
         TokenDTO tokenDTO = userService.register(userRegisterReqDTO);
         return new ResponseEntity<>(tokenDTO, HttpStatus.CREATED);
     }
@@ -49,14 +41,23 @@ public class UserResource extends ExceptionHandling {
 //        return headers;
 //    }
 
-    private void authenticate(String email, String password){
+    private void authenticate(String email, String password) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
     }
 
+    @GetMapping("/user")
+    public ResponseEntity<List<GetUserResDTO>> getAllUsers() {
+        return new ResponseEntity<>(userService.getAllUsersDTO(), HttpStatus.OK);
+    }
+
     @GetMapping("/user/{id}")
-    public String getUser(@PathVariable Long id) {
-        System.out.println();
-        return null;
+    public ResponseEntity<GetUserResDTO> getUser(@PathVariable Long id) throws UserNotFoundException {
+        return new ResponseEntity<>(userService.getUserDTOById(id), HttpStatus.OK);
+    }
+
+    @PutMapping("/user/change-password")
+    public ResponseEntity<OkDTO> changePassword(@RequestBody ChangePasswordDTO changePasswordDTO, @RequestHeader("Authorization") String token) throws UserNotFoundException, OldPwDoesntMatchException, OldAndNewPwMatchException {
+        return new ResponseEntity<>(userService.changePassword(changePasswordDTO, token), HttpStatus.OK);
     }
 
     @GetMapping("/home")

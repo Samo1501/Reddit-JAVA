@@ -37,7 +37,7 @@ public class JWTTokenProvider {
                 .withSubject(userPrincipal.getUsername())
                 .withArrayClaim(SecurityConstant.AUTHORITIES, claims)
                 .withExpiresAt(new Date(System.currentTimeMillis() + SecurityConstant.EXPIRATION_TIME))
-                .sign(Algorithm.HMAC256(secret.getBytes()));
+                .sign(Algorithm.HMAC512(secret.getBytes()));
     }
     
     public List<GrantedAuthority> getAuthorities(String token){
@@ -74,8 +74,8 @@ public class JWTTokenProvider {
     private JWTVerifier getJWTVerifier() {
         JWTVerifier verifier;
         try {
-            verifier = JWT.require(Algorithm.HMAC256(Base64.getDecoder().decode(secret))).
-                    withIssuer(SecurityConstant.RAFALE)
+            verifier = JWT.require(Algorithm.HMAC512(secret))
+                            .withIssuer(SecurityConstant.RAFALE)
                     .build();
         }catch (JWTVerificationException e){
             throw new JWTVerificationException(SecurityConstant.TOKEN_CANNOT_BE_VERIFIED);

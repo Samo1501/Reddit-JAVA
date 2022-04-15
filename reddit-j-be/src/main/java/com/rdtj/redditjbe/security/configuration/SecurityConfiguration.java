@@ -54,6 +54,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(SecurityConstant.PUBLIC_URLS).permitAll()
                 .antMatchers("/api/v1/home").hasAnyAuthority("user:read")
+                .antMatchers("/api/v1/user/*").hasAnyAuthority("user:read")
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().accessDeniedHandler(jwtAccessDeniedHandler)
