@@ -23,7 +23,7 @@ public class UserResource extends ExceptionHandling {
     private final UserService userService;
 
     @PostMapping("/auth/register")
-    public ResponseEntity<TokenDTO> register(@RequestBody UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException, CredentialWrongFormatException {
+    public ResponseEntity<TokenDTO> register(@RequestBody UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException, CredentialWrongFormatException, RequiredDataIncompleteException {
         TokenDTO tokenDTO = userService.register(userRegisterReqDTO);
         return new ResponseEntity<>(tokenDTO, HttpStatus.CREATED);
     }
@@ -63,6 +63,11 @@ public class UserResource extends ExceptionHandling {
     @PutMapping("/user/change-password")
     public ResponseEntity<OkDTO> changePassword(@RequestBody ChangePasswordDTO changePasswordDTO, @RequestHeader("Authorization") String token) throws UserNotFoundException, OldPwDoesntMatchException, OldAndNewPwMatchException {
         return new ResponseEntity<>(userService.changePassword(changePasswordDTO, token), HttpStatus.OK);
+    }
+
+    @PutMapping("/user/change-username")
+    public ResponseEntity<OkDTO> changeUsername(@RequestBody ChangeUsernameDTO changeUsernameDTO, @RequestHeader("Authorization") String token) throws UserNotFoundException, OldPwDoesntMatchException, OldAndNewPwMatchException, RequiredDataIncompleteException, UsernameExistsException {
+        return new ResponseEntity<>(userService.changeUsername(changeUsernameDTO, token), HttpStatus.OK);
     }
 
     @GetMapping("/home")

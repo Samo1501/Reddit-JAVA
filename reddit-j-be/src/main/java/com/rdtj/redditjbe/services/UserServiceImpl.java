@@ -1,7 +1,6 @@
 package com.rdtj.redditjbe.services;
 
 import com.auth0.jwt.JWT;
-import com.rdtj.redditjbe.constants.Authority;
 import com.rdtj.redditjbe.domain.Role;
 import com.rdtj.redditjbe.domain.User;
 import com.rdtj.redditjbe.domain.UserPrincipal;
@@ -51,21 +50,21 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public TokenDTO register(UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException, CredentialWrongFormatException {
+    public TokenDTO register(UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException, CredentialWrongFormatException, RequiredDataIncompleteException {
+        registrationDtoIncomplete(userRegisterReqDTO);
         emailFormatIsValid(userRegisterReqDTO.getEmail());
         usernameFormatIsValid(userRegisterReqDTO.getUsername());
         passwordFormatIsValid(userRegisterReqDTO.getPassword());
 
         validateNewUsernameAndEmail("", userRegisterReqDTO.getUsername(), userRegisterReqDTO.getEmail());
 
-        User user = new User();
-        user.setUsername(userRegisterReqDTO.getUsername());
-        user.setEmail(userRegisterReqDTO.getEmail());
-        user.setPassword(encodePassword(userRegisterReqDTO.getPassword()));
-        user.setRole(Role.ROLE_USER);
-        user.setAuthorities(Role.ROLE_USER.getAuthorities());
-        user.setEnabled(true);
-        user.setNotLocked(true);
+        User user = new User(userRegisterReqDTO.getUsername(),
+                userRegisterReqDTO.getEmail(),
+                encodePassword(userRegisterReqDTO.getPassword()),
+                Role.ROLE_USER,
+                true,
+                true
+                );
         userRepository.save(user);
 
         return new TokenDTO(jwtTokenProvider.generateJwtToken(new UserPrincipal(user)));
@@ -136,7 +135,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public User getUserFromToken(String token) throws UserNotFoundException {
         Optional<User> optionalUser = userRepository.findUserByUsername(JWT.decode(token).getSubject());
 
-        if (optionalUser.isPresent()){
+        if (optionalUser.isPresent()) {
             return optionalUser.get();
         }
         throw new UserNotFoundException(USER_BY_USERNAME_NOT_FOUND);
@@ -145,8 +144,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public OkDTO changePassword(ChangePasswordDTO changePasswordDTO, String token) throws UserNotFoundException, OldPwDoesntMatchException, OldAndNewPwMatchException {
         User user = getUserFromToken(token.substring(TOKEN_PREFIX.length()));
-        if (passwordsMatch(changePasswordDTO.getOld_password(), user.getPassword())){
-            if (passwordsMatch(changePasswordDTO.getNew_password(), user.getPassword())){
+        if (passwordsMatch(changePasswordDTO.getOld_password(), user.getPassword())) {
+            if (passwordsMatch(changePasswordDTO.getNew_password(), user.getPassword())) {
                 throw new OldAndNewPwMatchException(OLD_AND_NEW_PW_MATCH);
             }
             user.setPassword(encodePassword(changePasswordDTO.getNew_password()));
@@ -157,9 +156,22 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    public OkDTO changeUsername(ChangeUsernameDTO changeUsernameDTO, String token) throws UserNotFoundException, RequiredDataIncompleteException, UsernameExistsException {
+        User loggedUser = getUserFromToken(token.substring(TOKEN_PREFIX.length()));
+        Optional<User> userInDbByNewUsername = userRepository.findUserByUsername(changeUsernameDTO.getUsername());
+
+        if (userInDbByNewUsername.isPresent() && (!userInDbByNewUsername.get().getId().equals(loggedUser.getId()))){
+            throw new UsernameExistsException(USERNAME_ALREADY_IN_USE);
+        }
+        loggedUser.setUsername(changeUsernameDTO.getUsername());
+        userRepository.save(loggedUser);
+        return new OkDTO();
+    }
+
+    @Override
     public OkDTO deleteUser(Long id) throws UserNotFoundException {
         Optional<User> optionalUser = userRepository.findUserById(id);
-        if (optionalUser.isPresent()){
+        if (optionalUser.isPresent()) {
             userRepository.delete(optionalUser.get());
             return new OkDTO();
         }
@@ -170,10 +182,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public GetUserResDTO getUserDTOById(Long id) throws UserNotFoundException {
         Optional<User> optionalUser = userRepository.findUserById(id);
 
-        if (optionalUser.isPresent()){
+        if (optionalUser.isPresent()) {
             return new GetUserResDTO(optionalUser.get());
         }
-       throw new UserNotFoundException(USER_BY_ID_NOT_FOUND);
+        throw new UserNotFoundException(USER_BY_ID_NOT_FOUND);
     }
 
     private void emailFormatIsValid(String email) throws CredentialWrongFormatException {
@@ -199,6 +211,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private boolean passwordsMatch(String pwRaw, String pwEncoded) {
         return bCryptPasswordEncoder.matches(pwRaw, pwEncoded);
+    }
+
+    private void registrationDtoIncomplete(UserRegisterReqDTO userRegisterReqDTO) throws RequiredDataIncompleteException {
+        if (userRegisterReqDTO.getPassword() == null ||
+                userRegisterReqDTO.getEmail() == null ||
+                userRegisterReqDTO.getUsername() == null) {
+            throw new RequiredDataIncompleteException(DATA_INCOMPLETE);
+        }
     }
 
 

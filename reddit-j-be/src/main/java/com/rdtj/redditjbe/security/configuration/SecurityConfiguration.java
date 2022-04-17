@@ -59,6 +59,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/api/v1/user/*").hasAuthority("user:read")
                 .antMatchers(HttpMethod.DELETE, "/api/v1/user/*").hasAuthority("user:delete")
                 .antMatchers("/api/v1/user/change-password").hasAuthority("user:update")
+                .antMatchers("/api/v1/user/change-username").hasAuthority("user:update")
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().accessDeniedHandler(jwtAccessDeniedHandler)

@@ -128,6 +128,11 @@ public class ExceptionHandling implements ErrorController{
         return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
+    @ExceptionHandler(RequiredDataIncompleteException.class)
+    public ResponseEntity<HttpResponse> requiredDataIncompleteException(RequiredDataIncompleteException exception){
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
     @RequestMapping("/error")
     public ResponseEntity<HttpResponse> notFound404(){
         System.out.println("adsdasd");

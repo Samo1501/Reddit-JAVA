@@ -7,7 +7,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
@@ -53,4 +52,14 @@ public class UserPrincipal implements UserDetails {
     public boolean isEnabled() {
         return user.isEnabled();
     }
+
+    public String[] getEmail() {
+        return new String[]{user.getEmail()};
+    }
+
+    public Long[] getId() {
+        return new Long[]{user.getId()};
+    }
+
+
 }
