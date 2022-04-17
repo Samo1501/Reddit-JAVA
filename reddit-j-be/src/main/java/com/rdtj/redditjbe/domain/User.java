@@ -16,7 +16,8 @@ import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter @Setter
+@Getter
+@Setter
 @Entity
 public class User implements Serializable {
 
@@ -44,6 +45,18 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user")
     private List<Subreddit> subredditsAuthored = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user")
+    private List<Post> posts = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(name = "users_subbed_subreddits",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "subreddit_id"))
+    private List<Subreddit> subredditsSubscribedTo = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<Comment> comments = new ArrayList<>();
+
     public User(String username, String email, String password, Role role, boolean isEnabled, boolean isNotLocked) {
         this.username = username;
         this.email = email;
@@ -52,5 +65,37 @@ public class User implements Serializable {
         authorities = role.getAuthorities();
         this.isEnabled = isEnabled;
         this.isNotLocked = isNotLocked;
+    }
+
+    public void addAuthoredSubreddit(Subreddit subreddit){
+        subredditsAuthored.add(subreddit);
+    }
+
+    public void removeAuthoredSubreddit(Subreddit subreddit){
+        subredditsAuthored.remove(subreddit);
+    }
+
+    public void addSubscribedSubreddit(Subreddit subreddit){
+        subredditsSubscribedTo.add(subreddit);
+    }
+
+    public void removeSubscribedSubreddit(Subreddit subreddit){
+        subredditsSubscribedTo.remove(subreddit);
+    }
+
+    public void addPost(Post post){
+        posts.add(post);
+    }
+
+    public void removePost(Post post){
+        posts.remove(post);
+    }
+
+    public void addComment(Comment comment){
+        comments.add(comment);
+    }
+
+    public void removeComment(Comment comment){
+        comments.remove(comment);
     }
 }

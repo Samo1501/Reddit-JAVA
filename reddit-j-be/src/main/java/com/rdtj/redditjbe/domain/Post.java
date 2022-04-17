@@ -15,42 +15,37 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter @Setter
-public class Subreddit {
+public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String name;
     private String title;
+
+    @Enumerated(EnumType.STRING)
+    private PostType postType = PostType.TEXT;
 
     @CreationTimestamp
     private Date date_created;
 
+    private String posted_url;
     private String description;
 
     @ManyToOne
     private User user;
 
-    @OneToMany(mappedBy = "subreddit")
-    private List<Post> posts = new ArrayList<>();
+    @ManyToOne
+    private Subreddit subreddit;
 
-    @ManyToMany(mappedBy = "subredditsSubscribedTo")
-    private List<User> userCount = new ArrayList<>();
+    @OneToMany(mappedBy = "post")
+    private List<Comment> comments = new ArrayList<>();
 
-    public void subscribeUser(User user){
-        userCount.add(user);
+    public void addComment(Comment comment){
+        comments.add(comment);
     }
 
-    public void unSubscribeUser(User user){
-        userCount.remove(user);
-    }
-
-    public void addPost(Post post){
-        posts.add(post);
-    }
-
-    public void remove(Post post){
-        posts.remove(post);
+    public void removeComment(Comment comment){
+        comments.remove(comment);
     }
 }
