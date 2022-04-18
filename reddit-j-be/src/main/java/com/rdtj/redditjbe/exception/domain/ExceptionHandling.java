@@ -13,9 +13,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.persistence.NoResultException;
 import java.io.IOException;
@@ -79,8 +77,13 @@ public class ExceptionHandling implements ErrorController{
         return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<HttpResponse> userNotFoundException(UserNotFoundException exception){
+    @ExceptionHandler(ObjectNotFoundException.class)
+    public ResponseEntity<HttpResponse> userNotFoundException(ObjectNotFoundException exception){
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(ObjectAlreadyExistsException.class)
+    public ResponseEntity<HttpResponse> objectAlreadyExistsException(ObjectAlreadyExistsException exception){
         return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
@@ -113,8 +116,8 @@ public class ExceptionHandling implements ErrorController{
         return createHttpResponse(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_MSG);
     }
 
-    @ExceptionHandler(CredentialWrongFormatException.class)
-    public ResponseEntity<HttpResponse> credentialWrongFormatException(CredentialWrongFormatException exception){
+    @ExceptionHandler(InputWrongFormatException.class)
+    public ResponseEntity<HttpResponse> credentialWrongFormatException(InputWrongFormatException exception){
         return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 

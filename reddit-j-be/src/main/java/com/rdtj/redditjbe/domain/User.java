@@ -1,5 +1,7 @@
 package com.rdtj.redditjbe.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -42,13 +44,17 @@ public class User implements Serializable {
     private boolean isEnabled;
     private boolean isNotLocked;
 
+
     @OneToMany(mappedBy = "user")
+    @JsonBackReference
     private List<Subreddit> subredditsAuthored = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
+    @JsonBackReference
     private List<Post> posts = new ArrayList<>();
 
     @ManyToMany
+    @JsonBackReference
     @JoinTable(name = "users_subbed_subreddits",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "subreddit_id"))

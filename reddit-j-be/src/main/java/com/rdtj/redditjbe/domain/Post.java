@@ -1,5 +1,8 @@
 package com.rdtj.redditjbe.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.rdtj.redditjbe.dtos.CreatePostReqDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,6 +43,11 @@ public class Post {
 
     @OneToMany(mappedBy = "post")
     private List<Comment> comments = new ArrayList<>();
+
+    public Post(String title, String postType) {
+        this.title = title;
+        this.postType = PostType.valueOf(postType.toUpperCase());
+    }
 
     public void addComment(Comment comment){
         comments.add(comment);

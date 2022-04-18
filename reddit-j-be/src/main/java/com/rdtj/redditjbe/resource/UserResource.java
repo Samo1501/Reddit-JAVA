@@ -1,10 +1,10 @@
 package com.rdtj.redditjbe.resource;
 
+import com.rdtj.redditjbe.domain.User;
 import com.rdtj.redditjbe.dtos.*;
 import com.rdtj.redditjbe.exception.domain.*;
 import com.rdtj.redditjbe.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,7 +23,7 @@ public class UserResource extends ExceptionHandling {
     private final UserService userService;
 
     @PostMapping("/auth/register")
-    public ResponseEntity<TokenDTO> register(@RequestBody UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException, CredentialWrongFormatException, RequiredDataIncompleteException {
+    public ResponseEntity<TokenDTO> register(@RequestBody UserRegisterReqDTO userRegisterReqDTO) throws ObjectNotFoundException, UsernameExistsException, EmailExistsException, InputWrongFormatException, RequiredDataIncompleteException {
         TokenDTO tokenDTO = userService.register(userRegisterReqDTO);
         return new ResponseEntity<>(tokenDTO, HttpStatus.CREATED);
     }
@@ -51,23 +51,28 @@ public class UserResource extends ExceptionHandling {
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<GetUserResDTO> getUser(@PathVariable Long id) throws UserNotFoundException {
+    public ResponseEntity<GetUserResDTO> getUser(@PathVariable Long id) throws ObjectNotFoundException {
         return new ResponseEntity<>(userService.getUserDTOById(id), HttpStatus.OK);
     }
 
     @DeleteMapping("/user/{id}")
-    public ResponseEntity<OkDTO> deleteUser(@PathVariable Long id) throws UserNotFoundException {
+    public ResponseEntity<OkDTO> deleteUser(@PathVariable Long id) throws ObjectNotFoundException {
         return new ResponseEntity<>(userService.deleteUser(id), HttpStatus.OK);
     }
 
     @PutMapping("/user/change-password")
-    public ResponseEntity<OkDTO> changePassword(@RequestBody ChangePasswordDTO changePasswordDTO, @RequestHeader("Authorization") String token) throws UserNotFoundException, OldPwDoesntMatchException, OldAndNewPwMatchException {
+    public ResponseEntity<OkDTO> changePassword(@RequestBody ChangePasswordDTO changePasswordDTO, @RequestHeader("Authorization") String token) throws ObjectNotFoundException, OldPwDoesntMatchException, OldAndNewPwMatchException {
         return new ResponseEntity<>(userService.changePassword(changePasswordDTO, token), HttpStatus.OK);
     }
 
     @PutMapping("/user/change-username")
-    public ResponseEntity<OkDTO> changeUsername(@RequestBody ChangeUsernameDTO changeUsernameDTO, @RequestHeader("Authorization") String token) throws UserNotFoundException, OldPwDoesntMatchException, OldAndNewPwMatchException, RequiredDataIncompleteException, UsernameExistsException {
+    public ResponseEntity<OkDTO> changeUsername(@RequestBody ChangeUsernameDTO changeUsernameDTO, @RequestHeader("Authorization") String token) throws ObjectNotFoundException, OldPwDoesntMatchException, OldAndNewPwMatchException, RequiredDataIncompleteException, UsernameExistsException {
         return new ResponseEntity<>(userService.changeUsername(changeUsernameDTO, token), HttpStatus.OK);
+    }
+
+    @GetMapping("/user/user-settings/{id}")
+    public ResponseEntity<User> getUserDetails(@PathVariable Long id) throws ObjectNotFoundException {
+        return new ResponseEntity<>(userService.findUserById(id), HttpStatus.OK);
     }
 
     @GetMapping("/home")

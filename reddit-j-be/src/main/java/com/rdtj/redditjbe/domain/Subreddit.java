@@ -1,5 +1,6 @@
 package com.rdtj.redditjbe.domain;
 
+import com.rdtj.redditjbe.dtos.SubredditReqDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,6 +38,12 @@ public class Subreddit {
 
     @ManyToMany(mappedBy = "subredditsSubscribedTo")
     private List<User> userCount = new ArrayList<>();
+
+    public Subreddit(SubredditReqDTO subredditReqDTO) {
+        name = subredditReqDTO.getName();
+        title = subredditReqDTO.getTitle();
+        description = subredditReqDTO.getDescription();
+    }
 
     public void subscribeUser(User user){
         userCount.add(user);
