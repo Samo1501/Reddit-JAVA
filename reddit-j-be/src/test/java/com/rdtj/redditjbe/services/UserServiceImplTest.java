@@ -79,6 +79,40 @@ class UserServiceImplTest {
     }
 
     @Test
+    void emailFormatIsInvalid3StartsWithEmptySpace() {
+
+        final UserRepository userRepository = Mockito.mock(UserRepository.class);
+        final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+        final JWTTokenProvider jwtTokenProvider = Mockito.mock(JWTTokenProvider.class);
+
+        final UserServiceImpl userService = new UserServiceImpl(userRepository, bCryptPasswordEncoder, jwtTokenProvider);
+        String email = " abc@gmail.com";
+
+        Exception thrown = Assertions.assertThrows(InputWrongFormatException.class, () -> {
+            userService.validateFormatEmail(email);
+        }, "message");
+
+        Assertions.assertEquals(INVALID_FORMAT_EMAIL, thrown.getMessage());
+    }
+
+    @Test
+    void emailFormatIsInvalid3EndsWithEmptySpace() {
+
+        final UserRepository userRepository = Mockito.mock(UserRepository.class);
+        final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+        final JWTTokenProvider jwtTokenProvider = Mockito.mock(JWTTokenProvider.class);
+
+        final UserServiceImpl userService = new UserServiceImpl(userRepository, bCryptPasswordEncoder, jwtTokenProvider);
+        String email = "abc@gmail.com ";
+
+        Exception thrown = Assertions.assertThrows(InputWrongFormatException.class, () -> {
+            userService.validateFormatEmail(email);
+        }, "message");
+
+        Assertions.assertEquals(INVALID_FORMAT_EMAIL, thrown.getMessage());
+    }
+
+    @Test
     void passwordFormatIsValid() {
 
         final UserRepository userRepository = Mockito.mock(UserRepository.class);
