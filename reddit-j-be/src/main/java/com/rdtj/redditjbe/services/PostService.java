@@ -13,10 +13,11 @@ public interface PostService {
 
     PostResDTO createPost(CreatePostReqDTO createPostReqDTO, String token) throws ObjectNotFoundException, RequiredDataIncompleteException, InputWrongFormatException;
     List<Post> getAllPosts();
-    List<PostResDTO> getPostsDtoList(List<Post> posts);
+    List<PostResDTO> mapPostsToDtoList(List<Post> posts);
     Post getPostById(Long id) throws ObjectNotFoundException;
 
     List<Post> getAllPostsBySubreddit(String subredditName);
 
 
+    List<Post> getPostsDtoListByUserId(Long id) throws ObjectNotFoundException;
 }

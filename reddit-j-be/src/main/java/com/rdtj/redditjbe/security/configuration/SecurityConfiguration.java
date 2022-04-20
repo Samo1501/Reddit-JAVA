@@ -67,6 +67,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/subreddits/posts/feed/r/**").hasAuthority("user:read")
                 .antMatchers("/api/v1/subreddits/posts/create").hasAuthority("user:read")
                 .antMatchers("/api/v1/subreddits/posts/*").hasAuthority("user:read")
+                .antMatchers("/api/v1/subreddits/posts/user/*").hasAuthority("user:read")
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().accessDeniedHandler(jwtAccessDeniedHandler)

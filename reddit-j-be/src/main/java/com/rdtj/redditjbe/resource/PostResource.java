@@ -25,13 +25,13 @@ public class PostResource {
     @GetMapping("/subreddits/posts/feed")
     public ResponseEntity<List<PostResDTO>> getAllPosts(){
         List<Post> posts = postService.getAllPosts();
-        return new ResponseEntity<>(postService.getPostsDtoList(posts), HttpStatus.OK);
+        return new ResponseEntity<>(postService.mapPostsToDtoList(posts), HttpStatus.OK);
     }
 
     @GetMapping("/subreddits/posts/feed/r/{subredditName}")
     public ResponseEntity<List<PostResDTO>> getAllPostsBySubreddit(@PathVariable String subredditName){
         List<Post> posts = postService.getAllPostsBySubreddit(subredditName);
-        return new ResponseEntity<>(postService.getPostsDtoList(posts), HttpStatus.OK);
+        return new ResponseEntity<>(postService.mapPostsToDtoList(posts), HttpStatus.OK);
     }
 
     @PostMapping("/subreddits/posts/create")
@@ -46,6 +46,12 @@ public class PostResource {
     public ResponseEntity<PostResDTO> getPostById(@PathVariable Long id) throws ObjectNotFoundException {
         Post post = postService.getPostById(id);
         return new ResponseEntity<>(new PostResDTO(post), HttpStatus.OK);
+    }
+
+    @GetMapping("/subreddits/posts/user/{id}")
+    public ResponseEntity<List<PostResDTO>> getPostByUserId(@PathVariable Long id) throws ObjectNotFoundException {
+        List<Post> posts = postService.getPostsDtoListByUserId(id);
+        return new ResponseEntity<>(postService.mapPostsToDtoList(posts), HttpStatus.OK);
     }
 
 }

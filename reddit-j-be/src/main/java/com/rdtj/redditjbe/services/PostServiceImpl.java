@@ -3,6 +3,7 @@ package com.rdtj.redditjbe.services;
 import com.rdtj.redditjbe.constants.PostImplConstants;
 import com.rdtj.redditjbe.domain.Post;
 import com.rdtj.redditjbe.domain.Subreddit;
+import com.rdtj.redditjbe.domain.User;
 import com.rdtj.redditjbe.dtos.CreatePostReqDTO;
 import com.rdtj.redditjbe.dtos.PostResDTO;
 import com.rdtj.redditjbe.exception.domain.InputWrongFormatException;
@@ -72,7 +73,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostResDTO> getPostsDtoList(List<Post> posts) {
+    public List<PostResDTO> mapPostsToDtoList(List<Post> posts) {
         return posts.stream().map(post -> new PostResDTO(post)).collect(Collectors.toList());
     }
 
@@ -89,5 +90,11 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<Post> getAllPostsBySubreddit(String subredditName) {
         return postRepository.findAllBySubreddit_Name(subredditName);
+    }
+
+    @Override
+    public List<Post> getPostsDtoListByUserId(Long id) throws ObjectNotFoundException {
+        User user = userService.findUserById(id);
+        return postRepository.findAllByUser_Id(id);
     }
 }

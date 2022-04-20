@@ -61,6 +61,7 @@ public class User implements Serializable {
     private List<Subreddit> subredditsSubscribedTo = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
+    @JsonBackReference
     private List<Comment> comments = new ArrayList<>();
 
     public User(String username, String email, String password, Role role, boolean isEnabled, boolean isNotLocked) {
