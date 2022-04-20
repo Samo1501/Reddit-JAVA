@@ -209,7 +209,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
     }
 
-    private void passwordFormatIsValid(String password) throws InputWrongFormatException {
+    protected void passwordFormatIsValid(String password) throws InputWrongFormatException {
         Pattern patternPw = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*.[ -/:-@\\[-`{-~]).{8,30}$");
         if (!patternPw.matcher(password).matches()) {
             throw new InputWrongFormatException(INVALID_FORMAT_PASSWORD);

@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import static com.rdtj.redditjbe.constants.UserImplConstant.*;
+
 
 class UserServiceImplTest {
 
@@ -39,7 +41,7 @@ class UserServiceImplTest {
             userService.emailFormatIsValid(email);
         }, "message");
 
-        Assertions.assertEquals("Email has invalid format!", thrown.getMessage());
+        Assertions.assertEquals(INVALID_FORMAT_EMAIL, thrown.getMessage());
     }
 
     @Test
@@ -56,7 +58,105 @@ class UserServiceImplTest {
             userService.emailFormatIsValid(email);
         }, "message");
 
-        Assertions.assertEquals("Email has invalid format!", thrown.getMessage());
+        Assertions.assertEquals(INVALID_FORMAT_EMAIL, thrown.getMessage());
+    }
+
+    @Test
+    void passwordFormatIsValid() {
+
+        final UserRepository userRepository = Mockito.mock(UserRepository.class);
+        final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+        final JWTTokenProvider jwtTokenProvider = Mockito.mock(JWTTokenProvider.class);
+
+        final UserServiceImpl userService = new UserServiceImpl(userRepository, bCryptPasswordEncoder, jwtTokenProvider);
+        String password = "pW12345?";
+
+        Assertions.assertDoesNotThrow(() -> userService.passwordFormatIsValid(password));
+    }
+
+    @Test
+    void passwordFormatIsInvalid1NoSpecial() {
+
+        final UserRepository userRepository = Mockito.mock(UserRepository.class);
+        final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+        final JWTTokenProvider jwtTokenProvider = Mockito.mock(JWTTokenProvider.class);
+
+        final UserServiceImpl userService = new UserServiceImpl(userRepository, bCryptPasswordEncoder, jwtTokenProvider);
+        String password = "pW123456";
+
+        Exception thrown = Assertions.assertThrows(InputWrongFormatException.class, () -> {
+            userService.passwordFormatIsValid(password);
+        }, "message");
+
+        Assertions.assertEquals(INVALID_FORMAT_PASSWORD, thrown.getMessage());
+    }
+
+    @Test
+    void passwordFormatIsInvalid2NoUppercase() {
+
+        final UserRepository userRepository = Mockito.mock(UserRepository.class);
+        final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+        final JWTTokenProvider jwtTokenProvider = Mockito.mock(JWTTokenProvider.class);
+
+        final UserServiceImpl userService = new UserServiceImpl(userRepository, bCryptPasswordEncoder, jwtTokenProvider);
+        String password = "p012345?";
+
+        Exception thrown = Assertions.assertThrows(InputWrongFormatException.class, () -> {
+            userService.passwordFormatIsValid(password);
+        }, "message");
+
+        Assertions.assertEquals(INVALID_FORMAT_PASSWORD, thrown.getMessage());
+    }
+
+    @Test
+    void passwordFormatIsInvalid3NoLowercase() {
+
+        final UserRepository userRepository = Mockito.mock(UserRepository.class);
+        final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+        final JWTTokenProvider jwtTokenProvider = Mockito.mock(JWTTokenProvider.class);
+
+        final UserServiceImpl userService = new UserServiceImpl(userRepository, bCryptPasswordEncoder, jwtTokenProvider);
+        String password = "AB0123456?";
+
+        Exception thrown = Assertions.assertThrows(InputWrongFormatException.class, () -> {
+            userService.passwordFormatIsValid(password);
+        }, "message");
+
+        Assertions.assertEquals(INVALID_FORMAT_PASSWORD, thrown.getMessage());
+    }
+
+    @Test
+    void passwordFormatIsInvalid4TooShort() {
+
+        final UserRepository userRepository = Mockito.mock(UserRepository.class);
+        final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+        final JWTTokenProvider jwtTokenProvider = Mockito.mock(JWTTokenProvider.class);
+
+        final UserServiceImpl userService = new UserServiceImpl(userRepository, bCryptPasswordEncoder, jwtTokenProvider);
+        String password = "pW012?";
+
+        Exception thrown = Assertions.assertThrows(InputWrongFormatException.class, () -> {
+            userService.passwordFormatIsValid(password);
+        }, "message");
+
+        Assertions.assertEquals(INVALID_FORMAT_PASSWORD, thrown.getMessage());
+    }
+
+    @Test
+    void passwordFormatIsInvalid5TooLong() {
+
+        final UserRepository userRepository = Mockito.mock(UserRepository.class);
+        final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+        final JWTTokenProvider jwtTokenProvider = Mockito.mock(JWTTokenProvider.class);
+
+        final UserServiceImpl userService = new UserServiceImpl(userRepository, bCryptPasswordEncoder, jwtTokenProvider);
+        String password = "abcdefghijklmnopRSTUVW0123456789?";
+
+        Exception thrown = Assertions.assertThrows(InputWrongFormatException.class, () -> {
+            userService.passwordFormatIsValid(password);
+        }, "message");
+
+        Assertions.assertEquals(INVALID_FORMAT_PASSWORD, thrown.getMessage());
     }
 
 
