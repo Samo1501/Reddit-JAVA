@@ -51,9 +51,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public TokenDTO register(UserRegisterReqDTO userRegisterReqDTO) throws ObjectNotFoundException, UsernameExistsException, EmailExistsException, InputWrongFormatException, RequiredDataIncompleteException {
         registrationDtoIncomplete(userRegisterReqDTO);
-        emailFormatIsValid(userRegisterReqDTO.getEmail());
-        usernameFormatIsValid(userRegisterReqDTO.getUsername());
-        passwordFormatIsValid(userRegisterReqDTO.getPassword());
+        validateFormatEmail(userRegisterReqDTO.getEmail());
+        validateFormatUsername(userRegisterReqDTO.getUsername());
+        validateFormatPassword(userRegisterReqDTO.getPassword());
 
         validateNewUsernameAndEmail("", userRegisterReqDTO.getUsername(), userRegisterReqDTO.getEmail());
 
@@ -202,21 +202,21 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         throw new ObjectNotFoundException(USER_BY_ID_NOT_FOUND);
     }
 
-    protected void emailFormatIsValid(String email) throws InputWrongFormatException {
+    protected void validateFormatEmail(String email) throws InputWrongFormatException {
         Pattern patternEmail = Pattern.compile("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?");
         if (!patternEmail.matcher(email).matches()) {
             throw new InputWrongFormatException(INVALID_FORMAT_EMAIL);
         }
     }
 
-    protected void passwordFormatIsValid(String password) throws InputWrongFormatException {
+    protected void validateFormatPassword(String password) throws InputWrongFormatException {
         Pattern patternPw = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*.[ -/:-@\\[-`{-~]).{8,30}$");
         if (!patternPw.matcher(password).matches()) {
             throw new InputWrongFormatException(INVALID_FORMAT_PASSWORD);
         }
     }
 
-    private void usernameFormatIsValid(String username) throws InputWrongFormatException {
+    protected void validateFormatUsername(String username) throws InputWrongFormatException {
         Pattern patternUsername = Pattern.compile("^[a-zA-Z0-9.-_$@*!]{3,30}$");
         if (!patternUsername.matcher(username).matches()) {
             throw new InputWrongFormatException(INVALID_FORMAT_USERNAME);
