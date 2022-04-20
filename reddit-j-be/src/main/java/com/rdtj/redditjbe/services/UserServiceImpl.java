@@ -202,7 +202,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         throw new ObjectNotFoundException(USER_BY_ID_NOT_FOUND);
     }
 
-    private void emailFormatIsValid(String email) throws InputWrongFormatException {
+    protected void emailFormatIsValid(String email) throws InputWrongFormatException {
         Pattern patternEmail = Pattern.compile("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?");
         if (!patternEmail.matcher(email).matches()) {
             throw new InputWrongFormatException(INVALID_FORMAT_EMAIL);
