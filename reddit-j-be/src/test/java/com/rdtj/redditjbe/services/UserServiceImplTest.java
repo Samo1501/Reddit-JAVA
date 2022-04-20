@@ -62,7 +62,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void emailFormatIsInvalid2NoStringAfterAtChar() {
+    void emailFormatIsInvalid3NoStringAfterAtChar() {
 
         final UserRepository userRepository = Mockito.mock(UserRepository.class);
         final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
@@ -79,7 +79,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void emailFormatIsInvalid3StartsWithEmptySpace() {
+    void emailFormatIsInvalid4StartsWithEmptySpace() {
 
         final UserRepository userRepository = Mockito.mock(UserRepository.class);
         final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
@@ -96,7 +96,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void emailFormatIsInvalid3EndsWithEmptySpace() {
+    void emailFormatIsInvalid5EndsWithEmptySpace() {
 
         final UserRepository userRepository = Mockito.mock(UserRepository.class);
         final BCryptPasswordEncoder bCryptPasswordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
