@@ -5,11 +5,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserLoginReqDTO {
+@Getter @Setter
+public class SubredditReqDTO {
 
-    private String email;
-    private String password;
+    private String name;
+    private String title;
+    private String description;
 }

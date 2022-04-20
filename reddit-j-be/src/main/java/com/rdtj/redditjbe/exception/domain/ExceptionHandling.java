@@ -13,9 +13,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.persistence.NoResultException;
 import java.io.IOException;
@@ -79,8 +77,13 @@ public class ExceptionHandling implements ErrorController{
         return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<HttpResponse> userNotFoundException(UserNotFoundException exception){
+    @ExceptionHandler(ObjectNotFoundException.class)
+    public ResponseEntity<HttpResponse> userNotFoundException(ObjectNotFoundException exception){
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(ObjectAlreadyExistsException.class)
+    public ResponseEntity<HttpResponse> objectAlreadyExistsException(ObjectAlreadyExistsException exception){
         return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
@@ -111,6 +114,26 @@ public class ExceptionHandling implements ErrorController{
     public ResponseEntity<HttpResponse> internalServerErrorException(Exception exception){
         System.out.println(exception.getMessage());
         return createHttpResponse(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_MSG);
+    }
+
+    @ExceptionHandler(InputWrongFormatException.class)
+    public ResponseEntity<HttpResponse> credentialWrongFormatException(InputWrongFormatException exception){
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(OldPwDoesntMatchException.class)
+    public ResponseEntity<HttpResponse> oldPwDoesntMatchException(OldPwDoesntMatchException exception){
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(OldAndNewPwMatchException.class)
+    public ResponseEntity<HttpResponse> oldAndNewPwMatchException(OldAndNewPwMatchException exception){
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(RequiredDataIncompleteException.class)
+    public ResponseEntity<HttpResponse> requiredDataIncompleteException(RequiredDataIncompleteException exception){
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
     @RequestMapping("/error")

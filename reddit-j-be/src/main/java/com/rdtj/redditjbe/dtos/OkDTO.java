@@ -3,13 +3,11 @@ package com.rdtj.redditjbe.dtos;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter @Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserLoginReqDTO {
+public class OkDTO {
 
-    private String email;
-    private String password;
+    private boolean ok = true;
 }

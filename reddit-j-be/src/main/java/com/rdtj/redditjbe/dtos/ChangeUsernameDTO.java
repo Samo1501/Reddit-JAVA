@@ -8,8 +8,7 @@ import lombok.Setter;
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserLoginReqDTO {
+public class ChangeUsernameDTO {
 
-    private String email;
-    private String password;
+    private String username;
 }

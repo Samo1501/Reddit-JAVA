@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +36,8 @@ public class JWTTokenProvider {
                 .withIssuedAt(new Date())
                 .withSubject(userPrincipal.getUsername())
                 .withArrayClaim(SecurityConstant.AUTHORITIES, claims)
+                .withArrayClaim("email", userPrincipal.getEmail())
+                .withArrayClaim("id", userPrincipal.getId())
                 .withExpiresAt(new Date(System.currentTimeMillis() + SecurityConstant.EXPIRATION_TIME))
                 .sign(Algorithm.HMAC512(secret.getBytes()));
     }
@@ -73,9 +76,8 @@ public class JWTTokenProvider {
     private JWTVerifier getJWTVerifier() {
         JWTVerifier verifier;
         try {
-            Algorithm algorithm = Algorithm.HMAC512(secret);
-            verifier = JWT.require(algorithm).
-                    withIssuer(SecurityConstant.RAFALE)
+            verifier = JWT.require(Algorithm.HMAC512(secret))
+                            .withIssuer(SecurityConstant.RAFALE)
                     .build();
         }catch (JWTVerificationException e){
             throw new JWTVerificationException(SecurityConstant.TOKEN_CANNOT_BE_VERIFIED);

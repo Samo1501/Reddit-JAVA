@@ -3,11 +3,10 @@ package com.rdtj.redditjbe.services;
 import com.rdtj.redditjbe.domain.Role;
 import com.rdtj.redditjbe.domain.User;
 import com.rdtj.redditjbe.domain.UserPrincipal;
-import com.rdtj.redditjbe.dtos.UserRegisterReqDTO;
-import com.rdtj.redditjbe.exception.domain.EmailExistsException;
-import com.rdtj.redditjbe.exception.domain.UserNotFoundException;
-import com.rdtj.redditjbe.exception.domain.UsernameExistsException;
+import com.rdtj.redditjbe.dtos.*;
+import com.rdtj.redditjbe.exception.domain.*;
 import com.rdtj.redditjbe.repositories.UserRepository;
+import com.rdtj.redditjbe.utilities.JWTTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,7 +19,9 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import static com.rdtj.redditjbe.constants.SecurityConstant.TOKEN_PREFIX;
 import static com.rdtj.redditjbe.constants.UserImplConstant.*;
 
 @Service
@@ -31,42 +32,56 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final JWTTokenProvider jwtTokenProvider;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> optionalUser = userRepository.findUserByUsername(username);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Optional<User> optionalUser = userRepository.findUserByEmail(email);
         if (optionalUser.isEmpty()) {
-            System.out.println("Username not found by username " + username);
-            throw new UsernameNotFoundException("Username not found by username " + username);
+            System.out.println("Login email not found not found by email " + email);
+            throw new UsernameNotFoundException("Login email not found not found by email " + email);
         } else {
             userRepository.save(optionalUser.get());
             UserPrincipal userPrincipal = new UserPrincipal(optionalUser.get());
-            System.out.println("Returning found user by username " + username);
+            System.out.println("Returning found user by username " + email);
             return userPrincipal;
         }
     }
 
     @Override
-    public User register(UserRegisterReqDTO userRegisterReqDTO) throws UserNotFoundException, UsernameExistsException, EmailExistsException {
+    public TokenDTO register(UserRegisterReqDTO userRegisterReqDTO) throws ObjectNotFoundException, UsernameExistsException, EmailExistsException, InputWrongFormatException, RequiredDataIncompleteException {
+        registrationDtoIncomplete(userRegisterReqDTO);
+        emailFormatIsValid(userRegisterReqDTO.getEmail());
+        usernameFormatIsValid(userRegisterReqDTO.getUsername());
+        passwordFormatIsValid(userRegisterReqDTO.getPassword());
+
         validateNewUsernameAndEmail("", userRegisterReqDTO.getUsername(), userRegisterReqDTO.getEmail());
-        System.out.println(userRegisterReqDTO.getPassword());
-        User user = new User();
-        user.setUsername(userRegisterReqDTO.getUsername());
-        user.setEmail(userRegisterReqDTO.getEmail());
-        user.setPassword(encodePassword(userRegisterReqDTO.getPassword()));
-        user.setRole(Role.ROLE_USER);
-        user.setAuthorities(Role.ROLE_USER.getAuthorities());
-        user.setEnabled(true);
-        user.setNotLocked(true);
+
+        User user = new User(userRegisterReqDTO.getUsername(),
+                userRegisterReqDTO.getEmail(),
+                encodePassword(userRegisterReqDTO.getPassword()),
+                Role.ROLE_USER,
+                true,
+                true
+                );
         userRepository.save(user);
-        return user;
+
+        return new TokenDTO(jwtTokenProvider.generateJwtToken(new UserPrincipal(user)));
     }
+
+    @Override
+    public TokenDTO login(UserLoginReqDTO userLoginReqDTO) {
+        User loginUser = findUserByEmail(userLoginReqDTO.getEmail());
+
+        return new TokenDTO(jwtTokenProvider.generateJwtToken(new UserPrincipal(loginUser)));
+    }
+
 
     private String encodePassword(String password) {
         return bCryptPasswordEncoder.encode(password);
     }
 
-    private User validateNewUsernameAndEmail(String currentUsername, String newUsername, String newEmail) throws UserNotFoundException, EmailExistsException, UsernameExistsException {
+    private User validateNewUsernameAndEmail(String currentUsername, String newUsername, String newEmail) throws ObjectNotFoundException, EmailExistsException, UsernameExistsException {
         Optional<User> optionalUserByUsername = userRepository.findUserByUsername(newUsername);
         Optional<User> optionalUserByEmail = userRepository.findUserByEmail(newEmail);
 
@@ -94,9 +109,16 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public List<User> getUsers() {
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
+    @Override
+    public List<GetAllUsersResDTO> getAllUsersDTO() {
+        List<User> users = getAllUsers();
+        return users.stream().map(user -> new GetAllUsersResDTO(user)).collect(Collectors.toList());
+    }
+
 
     @Override
     public User findUserByUsername(String username) {
@@ -108,32 +130,109 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userRepository.findUserByEmail(email).get();
     }
 
-    private boolean emailIsValid(String email) {
+    @Override
+    public User getUserFromToken(String token) throws ObjectNotFoundException {
+        Optional<User> optionalUser = userRepository.findUserByUsername(jwtTokenProvider.getSubject(token.substring(TOKEN_PREFIX.length())));
+
+        if (optionalUser.isPresent()) {
+            return optionalUser.get();
+        }
+        throw new ObjectNotFoundException(USER_BY_USERNAME_NOT_FOUND);
+    }
+
+    @Override
+    public OkDTO changePassword(ChangePasswordDTO changePasswordDTO, String token) throws ObjectNotFoundException, OldPwDoesntMatchException, OldAndNewPwMatchException {
+        User user = getUserFromToken(token);
+        if (passwordsMatch(changePasswordDTO.getOld_password(), user.getPassword())) {
+            if (passwordsMatch(changePasswordDTO.getNew_password(), user.getPassword())) {
+                throw new OldAndNewPwMatchException(OLD_AND_NEW_PW_MATCH);
+            }
+            user.setPassword(encodePassword(changePasswordDTO.getNew_password()));
+            userRepository.save(user);
+            return new OkDTO();
+        }
+        throw new OldPwDoesntMatchException(OLD_PW_DOESNT_MATCH);
+    }
+
+    @Override
+    public OkDTO changeUsername(ChangeUsernameDTO changeUsernameDTO, String token) throws ObjectNotFoundException, RequiredDataIncompleteException, UsernameExistsException {
+        User loggedUser = getUserFromToken(token);
+        Optional<User> userInDbByNewUsername = userRepository.findUserByUsername(changeUsernameDTO.getUsername());
+
+        if (userInDbByNewUsername.isPresent() && (!userInDbByNewUsername.get().getId().equals(loggedUser.getId()))){
+            throw new UsernameExistsException(USERNAME_ALREADY_IN_USE);
+        }
+        loggedUser.setUsername(changeUsernameDTO.getUsername());
+        userRepository.save(loggedUser);
+        return new OkDTO();
+    }
+
+    @Override
+    public void saveUser(User user) {
+        userRepository.save(user);
+    }
+
+    @Override
+    public User findUserById(Long id) throws ObjectNotFoundException {
+        Optional<User> optionalUser = userRepository.findUserById(id);
+
+        if (optionalUser.isEmpty()){
+            throw new ObjectNotFoundException(USER_BY_ID_NOT_FOUND);
+        }
+        return optionalUser.get();
+    }
+
+    @Override
+    public OkDTO deleteUser(Long id) throws ObjectNotFoundException {
+        Optional<User> optionalUser = userRepository.findUserById(id);
+        if (optionalUser.isPresent()) {
+            userRepository.delete(optionalUser.get());
+            return new OkDTO();
+        }
+        throw new ObjectNotFoundException(USER_BY_ID_NOT_FOUND);
+    }
+
+    @Override
+    public GetUserResDTO getUserDTOById(Long id) throws ObjectNotFoundException {
+        Optional<User> optionalUser = userRepository.findUserById(id);
+
+        if (optionalUser.isPresent()) {
+            return new GetUserResDTO(optionalUser.get());
+        }
+        throw new ObjectNotFoundException(USER_BY_ID_NOT_FOUND);
+    }
+
+    private void emailFormatIsValid(String email) throws InputWrongFormatException {
         Pattern patternEmail = Pattern.compile("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?");
         if (!patternEmail.matcher(email).matches()) {
-            throw new IllegalStateException("Email has invalid format!");
+            throw new InputWrongFormatException(INVALID_FORMAT_EMAIL);
         }
-        return patternEmail.matcher(email).matches();
     }
 
-    private boolean passwordIsValid(String password) {
+    private void passwordFormatIsValid(String password) throws InputWrongFormatException {
         Pattern patternPw = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*.[ -/:-@\\[-`{-~]).{8,30}$");
         if (!patternPw.matcher(password).matches()) {
-            throw new IllegalStateException("Password doesn't meet the requirements (English letters only, length between 8-30, at least: 1 lowercase, 1 uppercase, 1 number, 1 special character)");
+            throw new InputWrongFormatException(INVALID_FORMAT_PASSWORD);
         }
-        return patternPw.matcher(password).matches();
     }
 
-    private boolean usernameIsValid(String username) {
+    private void usernameFormatIsValid(String username) throws InputWrongFormatException {
         Pattern patternUsername = Pattern.compile("^[a-zA-Z0-9.-_$@*!]{3,30}$");
         if (!patternUsername.matcher(username).matches()) {
-            throw new IllegalStateException("The username has invalid length or contains forbidden characters. Also make sure it doesn't begin with (or include) any empty space(s).");
+            throw new InputWrongFormatException(INVALID_FORMAT_USERNAME);
         }
-        return patternUsername.matcher(username).matches();
     }
 
     private boolean passwordsMatch(String pwRaw, String pwEncoded) {
         return bCryptPasswordEncoder.matches(pwRaw, pwEncoded);
+    }
+
+    private void registrationDtoIncomplete(UserRegisterReqDTO userRegisterReqDTO) throws RequiredDataIncompleteException {
+        if (userRegisterReqDTO.getPassword() == null ||
+                userRegisterReqDTO.getEmail() == null ||
+                userRegisterReqDTO.getUsername() == null) {
+            throw new RequiredDataIncompleteException(DATA_INCOMPLETE);
+        }
     }
 
 
